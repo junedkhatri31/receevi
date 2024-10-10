@@ -9,12 +9,14 @@ export type WebhookMessage = {
     id: string,
     timestamp: string,
     image?: WebhookImage,
-    type: 'text' | 'reaction' | 'image',
+    video?: WebhookImage,
+    document?: WebhookImage,
+    type: 'text' | 'reaction' | 'image' | 'video' | 'document',
 }
 
 export type WebhookStatus = {
     id: string,
-    status: 'read' | 'sent' | 'delivered',
+    status: 'read' | 'sent' | 'delivered' | 'failed',
     timestamp: string,
     recipient_id: string,
     pricing?: {

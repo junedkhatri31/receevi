@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from "react"
+import { Dispatch, SetStateAction, useEffect, useRef, useState } from "react"
 import { DBTables } from "@/lib/enums/Tables"
 import { MessageJson, TemplateMessage, TextMessage } from "@/types/Message"
 import { createClient } from "@/utils/supabase-browser"
@@ -9,6 +9,8 @@ import ReceivedTextMessageUI from "./ReceivedTextMessageUI"
 import TailWrapper from "./TailWrapper"
 import ReceivedTemplateMessageUI from "./ReceivedTemplateMessageUI"
 import { markAsRead } from "./markAsRead"
+import ReceivedVideoMessageUI from "./ReceivedVideoMessageUI"
+import ReceivedDocumentMessageUI from "./ReceivedDocumentMessageUI"
 
 type UIMessageModel = DBMessage & {
     msgDate: string
@@ -66,8 +68,32 @@ export default function MessageListClient({ from }: { from: string }) {
     }
 
     useEffect(() => {
+        if (stateMessages && stateMessages[0]) {
+            stateMessages[0].created_at
+            const channel = supabase
+                .channel('message-update')
+                .on<DBMessage>('postgres_changes', {
+                    event: 'UPDATE',
+                    schema: 'public',
+                    table: DBTables.Messages,
+                    filter: `created_at=gte.${stateMessages[0].created_at}`
+                }, payload => {
+                    const messageIndexToUpdate = stateMessages.findIndex((m) => m.wam_id == payload.new.wam_id)
+                    if (messageIndexToUpdate) {
+                        const withDates = addDateToMessages([payload.new])
+                        stateMessages[messageIndexToUpdate] = withDates[0]
+                        setMessages([...stateMessages])
+                    }
+                })
+                .subscribe()
+                return () => { supabase.removeChannel(channel) }
+        }
+        return () => {}
+    }, [supabase, stateMessages, setMessages])
+
+    useEffect(() => {
         const channel = supabase
-            .channel('any')
+            .channel('message-insert')
             .on<DBMessage>('postgres_changes', {
                 event: 'INSERT',
                 schema: 'public',
@@ -174,8 +200,12 @@ export default function MessageListClient({ from }: { from: string }) {
                                                         return <ReceivedTextMessageUI textMessage={messageBody as TextMessage} />
                                                     case "image":
                                                         return <ReceivedImageMessageUI message={message} />
+                                                    case "video":
+                                                        return <ReceivedVideoMessageUI message={message} />
                                                     case "template":
                                                         return <ReceivedTemplateMessageUI message={messageBody as TemplateMessage} />
+                                                    case "document":
+                                                        return <ReceivedDocumentMessageUI message={message} />
                                                     default:
                                                         return <div>Unsupported message</div>
                                                 }

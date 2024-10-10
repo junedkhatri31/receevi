@@ -59,6 +59,7 @@ export async function POST(request: NextRequest) {
                 wa_id: contact.wa_id,
                 profile_name: contact.profile.name,
                 last_message_at: new Date(),
+                last_message_received_at: new Date(),
                 in_chat: true,
               })
             if (error) throw error
@@ -78,7 +79,7 @@ export async function POST(request: NextRequest) {
             }), { onConflict: 'wam_id', ignoreDuplicates: true })
           if (error) throw new Error("Error while inserting messages to database", { cause: error})
           for (const message of messages) {
-            if (message.type === 'image') {
+            if (message.type === 'image' || message.type === 'video' || message.type === 'document') {
               await downloadMedia(message)
             }
           }
@@ -94,10 +95,11 @@ export async function POST(request: NextRequest) {
               sent_at_in?: Date,
               delivered_at_in?: Date,
               read_at_in?: Date,
+              failed_at_in?: Date,
             } = {
               wam_id_in: status.id,
             }
-            let functionName: 'update_message_delivered_status' | 'update_message_read_status' | 'update_message_sent_status' | null = null;
+            let functionName: 'update_message_delivered_status' | 'update_message_read_status' | 'update_message_sent_status' | 'update_message_failed_status' | null = null;
             if (status.status === 'sent') {
               update_obj.sent_at_in = new Date(Number.parseInt(status.timestamp) * 1000)
               functionName = 'update_message_sent_status'
@@ -107,6 +109,9 @@ export async function POST(request: NextRequest) {
             } else if (status.status === 'read') {
               update_obj.read_at_in = new Date(Number.parseInt(status.timestamp) * 1000)
               functionName = 'update_message_read_status'
+            } else if (status.status === 'failed') {
+              update_obj.failed_at_in = new Date(Number.parseInt(status.timestamp) * 1000)
+              functionName = 'update_message_failed_status'
             } else {
               console.warn(`Unknown status : ${status.status}`)
               console.warn('status', status)

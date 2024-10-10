@@ -16,12 +16,10 @@ export default function ReceivedImageMessageUI({ message }: { message: DBMessage
                     if (error) throw error
                     setImageUrl(data.signedUrl)
                 })
+                .catch(e => console.error(e))
         }
-    })
-    if (imageUrl) {
-        return (
-            <img alt="Image received" width="240" className="max-w-md" src={imageUrl} />
-        )
-    }
-    return (<></>)
+    }, [supabase.storage, message.media_url, setImageUrl])
+    return (
+        <img alt="Image received" className="h-[144px]" src={imageUrl || ''} />
+    )
 }

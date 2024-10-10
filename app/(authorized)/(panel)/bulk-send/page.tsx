@@ -14,51 +14,6 @@ import { useSearchParams } from "next/navigation"
 import PaginationButton from "./PaginationButton"
 import WatchForChanges from "./WatchForChanges"
 
-const invoices = [
-    {
-        invoice: "INV001",
-        paymentStatus: "Paid",
-        totalAmount: "$250.00",
-        paymentMethod: "Credit Card",
-    },
-    {
-        invoice: "INV002",
-        paymentStatus: "Pending",
-        totalAmount: "$150.00",
-        paymentMethod: "PayPal",
-    },
-    {
-        invoice: "INV003",
-        paymentStatus: "Unpaid",
-        totalAmount: "$350.00",
-        paymentMethod: "Bank Transfer",
-    },
-    {
-        invoice: "INV004",
-        paymentStatus: "Paid",
-        totalAmount: "$450.00",
-        paymentMethod: "Credit Card",
-    },
-    {
-        invoice: "INV005",
-        paymentStatus: "Paid",
-        totalAmount: "$550.00",
-        paymentMethod: "PayPal",
-    },
-    {
-        invoice: "INV006",
-        paymentStatus: "Pending",
-        totalAmount: "$200.00",
-        paymentMethod: "Bank Transfer",
-    },
-    {
-        invoice: "INV007",
-        paymentStatus: "Unpaid",
-        totalAmount: "$300.00",
-        paymentMethod: "Credit Card",
-    },
-]
-
 export default async function BulkSendPage({
     params,
     searchParams,
@@ -79,7 +34,7 @@ export default async function BulkSendPage({
     const broadcasts = await broadcastServer.getAllBroadcasts(page)
 
     return (
-        <>
+        <div className="m-4 bg-white p-4 rounded-xl">
             <WatchForChanges page={page} />
             <div className="space-y-4">
                 <div className="text-right">
@@ -96,6 +51,7 @@ export default async function BulkSendPage({
                             <TableHead className="text-right">Delivered</TableHead>
                             <TableHead className="text-right">Read</TableHead>
                             <TableHead className="text-right">Replied</TableHead>
+                            <TableHead className="text-right">Failed</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -109,6 +65,7 @@ export default async function BulkSendPage({
                                 <TableCell className="text-right">{broadcast.delivered_count}</TableCell>
                                 <TableCell className="text-right">{broadcast.read_count}</TableCell>
                                 <TableCell className="text-right">{broadcast.replied_count}</TableCell>
+                                <TableCell className="text-right">{broadcast.failed_count}</TableCell>
                             </TableRow>
                         ))}
                     </TableBody>
@@ -118,6 +75,6 @@ export default async function BulkSendPage({
                     <PaginationButton pagesToAdd={1}>Next</PaginationButton>
                 </div>
             </div>
-        </>
+        </div>
     )
 }
